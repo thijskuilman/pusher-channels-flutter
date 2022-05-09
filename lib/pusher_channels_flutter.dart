@@ -10,9 +10,9 @@ class PusherEvent {
   String? userId;
   PusherEvent(
       {required this.channelName,
-      required this.eventName,
-      this.data,
-      this.userId});
+        required this.eventName,
+        this.data,
+        this.userId});
   @override
   String toString() {
     return "{ channelName: $channelName, eventName: $eventName, data: $data, userId: $userId }";
@@ -40,11 +40,11 @@ class PusherChannel {
   Function(PusherMember member)? onMemberRemoved;
   PusherChannel(
       {required this.channelName,
-      this.onSubscriptionSucceeded,
-      this.onEvent,
-      this.onMemberAdded,
-      this.onMemberRemoved,
-      this.me});
+        this.onSubscriptionSucceeded,
+        this.onEvent,
+        this.onMemberAdded,
+        this.onMemberRemoved,
+        this.me});
 
   Future<void> unsubscribe() async {
     return PusherChannelsFlutter.getInstance()
@@ -82,12 +82,15 @@ class PusherChannelsFlutter {
 
   Future<void> init({
     required String apiKey,
-    required String cluster,
+    String? cluster,
     bool? useTLS,
     int? activityTimeout,
     int? pongTimeout,
     int? maxReconnectionAttempts,
     int? maxReconnectGapInSeconds,
+    String? host,
+    int? wsPort,
+    int? wssPort,
     String? proxy, // pusher-websocket-java only
     bool? enableStats, // pusher-js only
     List<String>? disabledTransports, // pusher-js only
@@ -98,7 +101,7 @@ class PusherChannelsFlutter {
     Map<String, Map<String, String>>? authParams, // pusher-js only
     bool? logToConsole, // pusher-js only
     Function(String currentState, String previousState)?
-        onConnectionStateChange,
+    onConnectionStateChange,
     Function(String channelName, dynamic data)? onSubscriptionSucceeded,
     Function(String message, dynamic error)? onSubscriptionError,
     Function(String event, String reason)? onDecryptionFailure,
@@ -107,7 +110,7 @@ class PusherChannelsFlutter {
     Function(String channelName, PusherMember member)? onMemberAdded,
     Function(String channelName, PusherMember member)? onMemberRemoved,
     Function(String channelName, String socketId, dynamic options)?
-        onAuthorizer,
+    onAuthorizer,
   }) async {
     methodChannel.setMethodCallHandler(_platformCallHandler);
     this.onConnectionStateChange = onConnectionStateChange;
@@ -136,7 +139,10 @@ class PusherChannelsFlutter {
       "authEndpoint": authEndpoint,
       "authTransport": authTransport,
       "authParams": authParams,
-      "logToConsole": logToConsole
+      "logToConsole": logToConsole,
+      "host": host,
+      "wsPort": wsPort,
+      "wssPort": wssPort,
     });
   }
 
@@ -160,7 +166,7 @@ class PusherChannelsFlutter {
       case 'onEvent':
         switch (eventName) {
           case 'pusher_internal:subscription_succeeded':
-            // Depending on the platform implementation we get json or a Map.
+          // Depending on the platform implementation we get json or a Map.
             var decodedData = data is Map ? data : jsonDecode(data);
             decodedData?["presence"]?["hash"]?.forEach((_userId, userInfo) {
               var member = PusherMember(_userId, userInfo);
@@ -220,11 +226,11 @@ class PusherChannelsFlutter {
 
   Future<PusherChannel> subscribe(
       {required String channelName,
-      var onSubscriptionSucceeded,
-      var onSubscriptionError,
-      var onMemberAdded,
-      var onMemberRemoved,
-      var onEvent}) async {
+        var onSubscriptionSucceeded,
+        var onSubscriptionError,
+        var onMemberAdded,
+        var onMemberRemoved,
+        var onEvent}) async {
     var channel = PusherChannel(
         channelName: channelName,
         onSubscriptionSucceeded: onSubscriptionSucceeded,

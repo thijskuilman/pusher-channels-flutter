@@ -99,7 +99,8 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         try {
             if (pusher == null) {
                 val options = PusherOptions()
-                if (call.argument<String>("cluster") != null) options.setCluster(call.argument("cluster"))
+                if (call.argument<String>("cluster") != null)
+                    options.setCluster(call.argument("cluster"))
                 if (call.argument<String>("host") != null)
                     options.setHost(call.argument("host")!!)
                 if (call.argument<Int>("wsPort") != null)
