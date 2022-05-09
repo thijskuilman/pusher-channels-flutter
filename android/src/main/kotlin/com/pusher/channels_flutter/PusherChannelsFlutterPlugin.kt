@@ -23,9 +23,9 @@ import java.net.Proxy
 import java.util.concurrent.Semaphore
 
 class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
-    ConnectionEventListener, ChannelEventListener, SubscriptionEventListener,
-    PrivateChannelEventListener, PrivateEncryptedChannelEventListener, PresenceChannelEventListener,
-    Authorizer {
+        ConnectionEventListener, ChannelEventListener, SubscriptionEventListener,
+        PrivateChannelEventListener, PrivateEncryptedChannelEventListener, PresenceChannelEventListener,
+        Authorizer {
     private var activity: FlutterActivity? = null
     private lateinit var methodChannel: MethodChannel
     private var pusher: Pusher? = null
@@ -33,10 +33,10 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         methodChannel =
-            MethodChannel(
-                flutterPluginBinding.binaryMessenger,
-                "pusher_channels_flutter"
-            )
+                MethodChannel(
+                        flutterPluginBinding.binaryMessenger,
+                        "pusher_channels_flutter"
+                )
         methodChannel.setMethodCallHandler(this)
     }
 
@@ -66,18 +66,18 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             "connect" -> this.connect(result)
             "disconnect" -> this.disconnect(result)
             "subscribe" -> this.subscribe(
-                call.argument("channelName")!!,
-                result
+                    call.argument("channelName")!!,
+                    result
             )
             "unsubscribe" -> this.unsubscribe(
-                call.argument("channelName")!!,
-                result
+                    call.argument("channelName")!!,
+                    result
             )
             "trigger" -> this.trigger(
-                call.argument("channelName")!!,
-                call.argument("eventName")!!,
-                call.argument("data")!!,
-                result
+                    call.argument("channelName")!!,
+                    call.argument("eventName")!!,
+                    call.argument("data")!!,
+                    result
             )
             "getSocketId" -> this.getSocketId(result)
             else -> {
@@ -93,25 +93,31 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     }
 
     private fun init(
-        call: MethodCall,
-        result: Result
+            call: MethodCall,
+            result: Result
     ) {
         try {
             if (pusher == null) {
                 val options = PusherOptions()
                 if (call.argument<String>("cluster") != null) options.setCluster(call.argument("cluster"))
+                if (call.argument<String>("host") != null)
+                    options.setHost(call.argument("host")!!)
+                if (call.argument<Int>("wsPort") != null)
+                    options.setWsPort(call.argument("wsPort")!!)
+                if (call.argument<Int>("wssPort") != null)
+                    options.setWssPort(call.argument("wssPort")!!)
                 if (call.argument<Boolean>("useTLS") != null) options.isUseTLS =
-                    call.argument("useTLS")!!
+                        call.argument("useTLS")!!
                 if (call.argument<Long>("activityTimeout") != null) options.activityTimeout =
-                    call.argument("activityTimeout")!!
+                        call.argument("activityTimeout")!!
                 if (call.argument<Long>("pongTimeout") != null) options.pongTimeout =
-                    call.argument("pongTimeout")!!
+                        call.argument("pongTimeout")!!
                 if (call.argument<Int>("maxReconnectionAttempts") != null) options.maxReconnectionAttempts =
-                    call.argument("maxReconnectionAttempts")!!
+                        call.argument("maxReconnectionAttempts")!!
                 if (call.argument<Int>("maxReconnectGapInSeconds") != null) options.maxReconnectGapInSeconds =
-                    call.argument("maxReconnectGapInSeconds")!!
+                        call.argument("maxReconnectGapInSeconds")!!
                 if (call.argument<String>("authEndpoint") != null) options.authorizer =
-                    HttpAuthorizer(call.argument("authEndpoint"))
+                        HttpAuthorizer(call.argument("authEndpoint"))
                 if (call.argument<String>("authorizer") != null) options.authorizer = this
                 if (call.argument<String>("proxy") != null) {
                     val (host, port) = call.argument<String>("proxy")!!.split(':')
@@ -121,10 +127,7 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             } else {
                 throw Exception("Pusher Channels already initialized.")
             }
-            Log.i(TAG, "test123")
-            options.setHost('ws://soketi.yukka.io')
-            options.setWsPort(6001)
-            options.setWssPort(6001)
+
             Log.i(TAG, "Start $pusher")
             result.success(null)
         } catch (e: Exception) {
@@ -146,10 +149,10 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         val channel = when {
             channelName.startsWith("private-") -> pusher!!.subscribePrivate(channelName, this)
             channelName.startsWith("private-encrypted-") -> pusher!!.subscribePrivateEncrypted(
-                channelName, this
+                    channelName, this
             )
             channelName.startsWith("presence-") -> pusher!!.subscribePresence(
-                channelName, this
+                    channelName, this
             )
             else -> pusher!!.subscribe(channelName, this)
         }
@@ -165,10 +168,10 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     private fun trigger(channelName: String, eventName: String, data: String, result: Result) {
         when {
             channelName.startsWith("private-") -> pusher!!.getPrivateChannel(channelName)
-                .trigger(eventName, data)
+                    .trigger(eventName, data)
             channelName.startsWith("private-encrypted-") -> throw Exception("It's not currently possible to send a message using private encrypted channels.")
             channelName.startsWith("presence-") -> pusher!!.getPresenceChannel(channelName)
-                .trigger(eventName, data)
+                    .trigger(eventName, data)
             else -> throw Exception("Messages can only be sent to private and presence channels.")
         }
         result.success(null)
@@ -184,8 +187,8 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         val mutex = Semaphore(0)
         activity!!.runOnUiThread {
             methodChannel.invokeMethod("onAuthorizer", mapOf(
-                "channelName" to channelName,
-                "socketId" to socketId
+                    "channelName" to channelName,
+                    "socketId" to socketId
             ), object : Result {
                 override fun success(o: Any?) {
                     if (o != null) {
@@ -211,10 +214,10 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     // Event handlers
     override fun onConnectionStateChange(change: ConnectionStateChange) {
         callback(
-            "onConnectionStateChange", mapOf(
+                "onConnectionStateChange", mapOf(
                 "previousState" to change.previousState.toString(),
                 "currentState" to change.currentState.toString()
-            )
+        )
         )
     }
 
@@ -222,11 +225,11 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         // For presence channels we wait for the onUsersInformationReceived event.
         if (!channelName.startsWith("presence-")) {
             callback(
-                "onEvent", mapOf(
+                    "onEvent", mapOf(
                     "channelName" to channelName,
                     "eventName" to "pusher_internal:subscription_succeeded",
                     "data" to emptyMap<String,String>()
-                )
+            )
             )
         }
     }
@@ -234,22 +237,22 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     override fun onEvent(event: PusherEvent) {
         // Log.i(TAG, "Received event with data: $event")
         callback(
-            "onEvent", mapOf(
+                "onEvent", mapOf(
                 "channelName" to event.channelName,
                 "eventName" to event.eventName,
                 "userId" to event.userId,
                 "data" to event.data
-            )
+        )
         )
     }
 
     override fun onAuthenticationFailure(message: String, e: Exception) {
         // Log.e(TAG, "Authentication failure due to $message, exception was $e")
         callback(
-            "onSubscriptionError", mapOf(
+                "onSubscriptionError", mapOf(
                 "message" to message,
                 "error" to e.toString()
-            )
+        )
         )
     } // Other ChannelEventListener methods
 
@@ -263,65 +266,65 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             hash[user.id] = gson.fromJson(user.info, Map::class.java)
         }
         val data = mapOf(
-            "presence" to mapOf(
-                "count" to users.size,
-                "ids" to users.map { it.id },
-                "hash" to hash
-            )
+                "presence" to mapOf(
+                        "count" to users.size,
+                        "ids" to users.map { it.id },
+                        "hash" to hash
+                )
         )
         callback(
-            "onEvent", mapOf(
+                "onEvent", mapOf(
                 "channelName" to channelName,
                 "eventName" to "pusher_internal:subscription_succeeded",
                 "userId" to channel.me.id,
                 "data" to data
-            )
+        )
         )
     }
 
     override fun onDecryptionFailure(event: String?, reason: String?) {
         // Log.e(TAG, "Decryption failure due to $event, exception was $reason")
         callback(
-            "onDecryptionFailure", mapOf(
+                "onDecryptionFailure", mapOf(
                 "event" to event,
                 "reason" to reason
-            )
+        )
         )
     }
 
     override fun userSubscribed(channelName: String, user: User) {
         // Log.i(TAG, "A new user joined channel [$channelName]: ${user.id}, ${user.info}")
         callback(
-            "onMemberAdded", mapOf(
+                "onMemberAdded", mapOf(
                 "channelName" to channelName,
                 "user" to mapOf(
-                    "userId" to user.id,
-                    "userInfo" to user.info
+                        "userId" to user.id,
+                        "userInfo" to user.info
                 )
-            )
+        )
         )
     }
 
     override fun userUnsubscribed(channelName: String, user: User) {
         // Log.i(TAG, "A user left channel [$channelName]: ${user.id}, ${user.info}")
         callback(
-            "onMemberRemoved", mapOf(
+                "onMemberRemoved", mapOf(
                 "channelName" to channelName,
                 "user" to mapOf(
-                    "userId" to user.id,
-                    "userInfo" to user.info
+                        "userId" to user.id,
+                        "userInfo" to user.info
                 )
-            )
+        )
         )
     } // Other ChannelEventListener methods
 
     override fun onError(message: String, code: String?, e: Exception?) {
         callback(
-            "onError", mapOf(
+                "onError", mapOf(
                 "message" to message,
                 "code" to code,
                 "error" to e.toString()
-            )
+        )
         )
     }
 
