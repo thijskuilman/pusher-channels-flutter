@@ -121,6 +121,10 @@ class PusherChannelsFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             } else {
                 throw Exception("Pusher Channels already initialized.")
             }
+            Log.i(TAG, "test123")
+            options.setHost('ws://soketi.yukka.io')
+            options.setWsPort(6001)
+            options.setWssPort(6001)
             Log.i(TAG, "Start $pusher")
             result.success(null)
         } catch (e: Exception) {
